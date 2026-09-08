@@ -1,0 +1,31 @@
+# IDE & OS Files
+.DS_Store
+.vscode/
+.idea/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Arduino/Build Output
+build/
+*.bin
+*.elf
+*.map
+*.hex
+*.a
+*.o
+
+# Temp sketch copies
+.build_cache.json
+test/
+
+# User-specific ESP32 config
+partitions.csv
+web_assets.h
