@@ -462,11 +462,28 @@ def manage_partitions():
     
     print(f"\n[File System Size]")
     print(f"Total available: {flash_size_mb} MB (minus ~64KB for bootloader/nvs)")
-    fs_str = input("How many Megabytes (MB) do you want for your Web Files/SPIFFS? (e.g. 1.5): ").strip()
-    try:
-        fs_mb = float(fs_str)
-    except:
-        fs_mb = 1.5
+    
+    suggested_mb = 1.5
+    data_dir = os.path.join(folder, "data")
+    if os.path.isdir(data_dir):
+        total_size = 0
+        for dirpath, _, filenames in os.walk(data_dir):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+        # Add 20% overhead for LittleFS metadata, round to 1 decimal
+        calc_mb = (total_size / (1024 * 1024)) * 1.2
+        suggested_mb = max(0.5, round(calc_mb * 2) / 2.0)
+        print(f"\033[96mAnalyzed '{data_dir}': ~{total_size/1024:.1f} KB. Suggested FS size: {suggested_mb:.1f} MB\033[0m")
+        
+    fs_str = input(f"How many Megabytes (MB) do you want for your Web Files/SPIFFS? [Default {suggested_mb:.1f}]: ").strip()
+    if not fs_str:
+        fs_mb = suggested_mb
+    else:
+        try:
+            fs_mb = float(fs_str)
+        except:
+            fs_mb = suggested_mb
         
     total_kb = flash_size_mb * 1024
     available_kb = total_kb - 64
