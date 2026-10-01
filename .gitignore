@@ -29,3 +29,8 @@ test/
 # User-specific ESP32 config
 partitions.csv
 web_assets.h
+
+# Web version
+web/builds/
+web/__pycache__/
+__pycache__/

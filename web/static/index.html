@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>⚡ Lazy-ESP32 Web</title>
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+<header>
+  <div class="brand">⚡ Lazy-ESP32 <span>Web</span></div>
+  <div class="health" id="health">checking server…</div>
+</header>
+
+<section class="conn card">
+  <h2>🔌 Connection</h2>
+  <div class="row">
+    <select id="port"></select>
+    <button onclick="refreshPorts()">↻ Ports</button>
+    <input id="baud" value="460800" title="baud" style="width:90px" />
+    <select id="fqbn">
+      <option value="esp32:esp32:esp32">ESP32</option>
+      <option value="esp32:esp32:esp32s3">ESP32-S3</option>
+      <option value="esp32:esp32:esp32s2">ESP32-S2</option>
+      <option value="esp32:esp32:esp32c3">ESP32-C3</option>
+      <option value="esp32:esp32:esp32c6">ESP32-C6</option>
+    </select>
+    <button class="primary" onclick="detect()">Auto-detect chip</button>
+  </div>
+  <div id="detectOut" class="mono small"></div>
+</section>
+
+<main class="grid">
+  <section class="card">
+    <h2>① Flash via USB (.ino / .bin)</h2>
+    <input type="file" id="flashFile" accept=".ino,.bin" />
+    <input type="file" id="flashParts" accept=".csv" title="optional partitions.csv" />
+    <div class="row">
+      <input id="flashAddr" value="0x10000" style="width:90px" title="flash address for .bin" />
+      <button class="primary" onclick="doFlash()">Flash</button>
+    </div>
+    <pre id="flashLog" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>② OTA Wireless</h2>
+    <div class="row"><button onclick="otaScan()">Scan network</button><input id="otaIp" placeholder="ESP IP" /></div>
+    <input type="file" id="otaFile" accept=".bin" />
+    <input id="otaPass" placeholder="OTA password (optional)" type="password" />
+    <div class="row"><button class="primary" onclick="otaFlash()">Push OTA</button></div>
+    <div id="otaDevs" class="small"></div>
+    <pre id="otaLog" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>③ Compile only</h2>
+    <input type="file" id="compFile" accept=".ino" />
+    <input type="file" id="compParts" accept=".csv" />
+    <div class="row"><button class="primary" onclick="doCompile()">Compile</button><a id="binDl" style="display:none">⬇ Download .bin</a></div>
+    <pre id="compLog" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>④ Recovery</h2>
+    <div class="row">
+      <button class="danger" onclick="doErase('normal')">Normal erase</button>
+      <button class="danger" onclick="doErase('factory')">Factory reset</button>
+    </div>
+    <pre id="eraseLog" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>⑤ Pinout</h2>
+    <div class="row">
+      <select id="pinChip"><option>ESP32</option><option>ESP32-S3</option><option>ESP32-S2</option><option>ESP32-C3</option><option>ESP32-C6</option></select>
+      <button onclick="loadPinout()">Show</button>
+    </div>
+    <div id="pinOut" class="small"></div>
+  </section>
+
+  <section class="card">
+    <h2>⑥ Backup firmware</h2>
+    <button onclick="doBackup()">Read flash → .bin</button>
+    <a id="bakDl" style="display:none">⬇ Download backup</a>
+    <pre id="bakLog" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>⑦ Serial monitor</h2>
+    <div class="row">
+      <input id="monBaud" value="115200" style="width:90px" />
+      <button onclick="monConnect()">Connect</button>
+      <button onclick="monDisconnect()">Disconnect</button>
+    </div>
+    <pre id="monOut" class="log tall"></pre>
+    <div class="row"><input id="monIn" placeholder="type + Enter to send" style="flex:1" /><button onclick="monSend()">Send</button></div>
+  </section>
+
+  <section class="card">
+    <h2>⑧ Web assets → .h</h2>
+    <input type="file" id="webFiles" multiple accept=".html,.css,.js" />
+    <div class="row"><button onclick="packWeb(false)">Convert</button><button onclick="packWeb(true)">⬇ .h file</button></div>
+    <pre id="webOut" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>⑨ Board info</h2>
+    <button onclick="boardInfo()">Diagnose</button>
+    <div id="infoOut" class="small mono"></div>
+  </section>
+
+  <section class="card">
+    <h2>⑩ Core manager</h2>
+    <div class="row"><button onclick="coreList()">List version</button><button onclick="coreUpgrade()">Upgrade</button></div>
+    <div class="row"><input id="coreVer" placeholder="e.g. 2.0.11" /><button onclick="coreInstall()">Install version</button></div>
+    <pre id="coreLog" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>⑪ Partition manager</h2>
+    <div class="row">
+      <button onclick="detectFlash()">Detect flash size</button><span id="flashLbl"></span>
+    </div>
+    <div class="row">
+      <label>Flash <select id="pFlash"><option>4</option><option>8</option><option>16</option><option>2</option></select> MB</label>
+      <label><input type="checkbox" id="pOta" /> OTA</label>
+      <label>FS <input id="pFs" value="1.5" style="width:60px" /> MB</label>
+    </div>
+    <div class="row"><button onclick="partCalc()">Calculate</button><button class="primary" onclick="partGen()">Generate CSV</button></div>
+    <div id="partOut" class="small mono"></div>
+    <pre id="partCsv" class="log"></pre>
+  </section>
+</main>
+
+<footer>All CLI features in-browser · Backend: FastAPI · USB via server · No terminal needed after launch</footer>
+<script src="/static/app.js"></script>
+</body>
+</html>
