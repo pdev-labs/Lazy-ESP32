@@ -35,19 +35,26 @@
     <h2>① Flash via USB (.ino / .bin)</h2>
     <input type="file" id="flashFile" accept=".ino,.bin" />
     <input type="file" id="flashParts" accept=".csv" title="optional partitions.csv" />
+    <label class="small">📁 data/ files for LittleFS (optional): <input type="file" id="flashData" multiple /></label>
     <div class="row">
       <input id="flashAddr" value="0x10000" style="width:90px" title="flash address for .bin" />
-      <button class="primary" onclick="doFlash()">Flash</button>
+      <button onclick="scanLibs('flash','flashLibs')">Scan libs</button>
+      <button class="primary" onclick="doFlash(this)">Flash</button>
     </div>
+    <div id="flashLibs" class="small"></div>
     <pre id="flashLog" class="log"></pre>
   </section>
 
   <section class="card">
     <h2>② OTA Wireless</h2>
     <div class="row"><button onclick="otaScan()">Scan network</button><input id="otaIp" placeholder="ESP IP" /></div>
+    <div class="small">Push a ready .bin:</div>
     <input type="file" id="otaFile" accept=".bin" />
     <input id="otaPass" placeholder="OTA password (optional)" type="password" />
-    <div class="row"><button class="primary" onclick="otaFlash()">Push OTA</button></div>
+    <div class="row"><button class="primary" onclick="otaFlash(this)">Push .bin via OTA</button></div>
+    <div class="small">…or compile a sketch + push:</div>
+    <input type="file" id="otaIno" accept=".ino" />
+    <div class="row"><button onclick="otaCompileFlash(this)">Compile + push OTA</button></div>
     <div id="otaDevs" class="small"></div>
     <pre id="otaLog" class="log"></pre>
   </section>
@@ -56,15 +63,16 @@
     <h2>③ Compile only</h2>
     <input type="file" id="compFile" accept=".ino" />
     <input type="file" id="compParts" accept=".csv" />
-    <div class="row"><button class="primary" onclick="doCompile()">Compile</button><a id="binDl" style="display:none">⬇ Download .bin</a></div>
+    <div class="row"><button onclick="scanLibs('comp','compLibs')">Scan libs</button><button class="primary" onclick="doCompile(this)">Compile</button><a id="binDl" style="display:none">⬇ Download .bin</a></div>
+    <div id="compLibs" class="small"></div>
     <pre id="compLog" class="log"></pre>
   </section>
 
   <section class="card">
     <h2>④ Recovery</h2>
     <div class="row">
-      <button class="danger" onclick="doErase('normal')">Normal erase</button>
-      <button class="danger" onclick="doErase('factory')">Factory reset</button>
+      <button class="danger" onclick="doErase('normal',this)">Normal erase</button>
+      <button class="danger" onclick="doErase('factory',this)">Factory reset</button>
     </div>
     <pre id="eraseLog" class="log"></pre>
   </section>
@@ -80,7 +88,7 @@
 
   <section class="card">
     <h2>⑥ Backup firmware</h2>
-    <button onclick="doBackup()">Read flash → .bin</button>
+    <button onclick="doBackup(this)">Read flash → .bin</button>
     <a id="bakDl" style="display:none">⬇ Download backup</a>
     <pre id="bakLog" class="log"></pre>
   </section>
@@ -91,6 +99,8 @@
       <input id="monBaud" value="115200" style="width:90px" />
       <button onclick="monConnect()">Connect</button>
       <button onclick="monDisconnect()">Disconnect</button>
+      <button onclick="monClear()">Clear</button>
+      <label class="small"><input type="checkbox" id="monAuto" checked /> autoscroll</label>
     </div>
     <pre id="monOut" class="log tall"></pre>
     <div class="row"><input id="monIn" placeholder="type + Enter to send" style="flex:1" /><button onclick="monSend()">Send</button></div>
@@ -111,8 +121,8 @@
 
   <section class="card">
     <h2>⑩ Core manager</h2>
-    <div class="row"><button onclick="coreList()">List version</button><button onclick="coreUpgrade()">Upgrade</button></div>
-    <div class="row"><input id="coreVer" placeholder="e.g. 2.0.11" /><button onclick="coreInstall()">Install version</button></div>
+    <div class="row"><button onclick="coreList()">List version</button><button onclick="coreUpgrade(this)">Upgrade</button><button onclick="coreSearch()">Search</button></div>
+    <div class="row"><input id="coreVer" placeholder="e.g. 2.0.11" /><button onclick="coreInstall(this)">Install version</button></div>
     <pre id="coreLog" class="log"></pre>
   </section>
 
@@ -126,9 +136,21 @@
       <label><input type="checkbox" id="pOta" /> OTA</label>
       <label>FS <input id="pFs" value="1.5" style="width:60px" /> MB</label>
     </div>
-    <div class="row"><button onclick="partCalc()">Calculate</button><button class="primary" onclick="partGen()">Generate CSV</button></div>
+    <div class="row"><input type="file" id="fsSuggestFiles" multiple title="your web/data files for size suggestion" /><button onclick="suggestFs()">Suggest FS size</button></div>
+    <div id="fsSuggestOut" class="small"></div>
+    <div class="row"><button onclick="partCalc()">Calculate</button><button class="primary" onclick="partGen()">Generate CSV</button><button onclick="partDownload()">⬇ CSV</button></div>
     <div id="partOut" class="small mono"></div>
     <pre id="partCsv" class="log"></pre>
+  </section>
+
+  <section class="card">
+    <h2>⑫ LittleFS data upload</h2>
+    <div class="small">Pack web files into <code>littlefs.bin</code> and flash to the spiffs partition (CLI “flash data folder” parity).</div>
+    <label class="small">Data files: <input type="file" id="fsFiles" multiple /></label>
+    <label class="small">partitions.csv (paste — auto-filled by ⑪): <textarea id="fsCsv" rows="4" style="width:100%" placeholder="nvs, data, nvs, 0x9000, 20K, ..."></textarea></label>
+    <div class="row"><label class="small">…or FS size <input id="fsKb" style="width:80px" placeholder="KB" /> KB</label></div>
+    <div class="row"><button onclick="fsBuild()">Pack → .bin</button><button class="primary" onclick="fsFlash(this)">Pack + flash FS</button><a id="fsDl" style="display:none">⬇ littlefs.bin</a></div>
+    <pre id="fsLog" class="log"></pre>
   </section>
 </main>
 

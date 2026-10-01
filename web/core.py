@@ -41,21 +41,113 @@ PINOUTS = {
 }
 
 PINOUT_ASCII = {
-    "ESP32": """38-pin Standard
-3V3 |1    38| GND | EN |2    37| GPIO23 (VSPI MOSI)
-VP(36)|3  36| GPIO22 (I2C SCL) | VN(39)|4 35| TX0(1)
-34|5   34| RX0(3) | 35|6   33| GPIO21 (I2C SDA)
-32|7   32| GND | 33|8   31| GPIO19 (MISO)
-25|9   30| GPIO18 (CLK) | 26|10 29| GPIO5 (CS)
-27|11  28| GPIO17(TX2) | 14|12 27| GPIO16(RX2)
-12|13  26| GPIO4 | GND|14  25| GPIO0(BOOT)
-13|15  24| GPIO2 | SD2(9)|16 23| GPIO15
-SD3(10)|17 22| SD1(8) | CMD(11)|18 21| SD0(7)
-5V|19   20| CLK(6)""",
-    "ESP32-S3": "See CLI pinout: safe Analog 4-10, General 11-18,21,38-48. Avoid 0,3,19,20,35,36,37,45,46. USB D-/D+ = 19/20. TX=43 RX=44. RGB=38.",
-    "ESP32-S2": "Safe 1-18,21,26,33-42. TX=43 RX=44. USB 19/20.",
-    "ESP32-C3": "Safe 0-7,10,18-21. BOOT pins 2,8,9. TX=21 RX=20. USB 18/19.",
-    "ESP32-C6": "Safe 0-7,11. BOOT=9. TX=16 RX=17. USB 12/13.",
+    "ESP32": """ESP32 Pinout Cheatsheet (Standard 38-Pin)
+[SAFE TO USE] [INPUT ONLY] [POWER] [COMMUNICATION]
+
+       3V3  | 1       38 |  GND
+       EN   | 2       37 |  GPIO 23 (VSPI MOSI)
+GPIO 36 (VP)| 3       36 |  GPIO 22 (I2C SCL)
+GPIO 39 (VN)| 4       35 |  TX0 (GPIO 1)
+GPIO 34     | 5       34 |  RX0 (GPIO 3)
+GPIO 35     | 6       33 |  GPIO 21 (I2C SDA)
+GPIO 32     | 7       32 |  GND
+GPIO 33     | 8       31 |  GPIO 19 (VSPI MISO)
+GPIO 25     | 9       30 |  GPIO 18 (VSPI CLK)
+GPIO 26     | 10      29 |  GPIO 5  (VSPI CS)
+GPIO 27     | 11      28 |  GPIO 17 (TX2)
+GPIO 14     | 12      27 |  GPIO 16 (RX2)
+GPIO 12     | 13      26 |  GPIO 4
+       GND  | 14      25 |  GPIO 0  (Boot mode)
+GPIO 13     | 15      24 |  GPIO 2
+SD2 (GP 9)  | 16      23 |  GPIO 15
+SD3 (GP 10) | 17      22 |  SD1 (GP 8)
+CMD (GP 11) | 18      21 |  SD0 (GP 7)
+       5V   | 19      20 |  CLK (GP 6)
+
+I2C default: SDA=21 SCL=22. Avoid GPIO 6-11 (flash), 0 (boot), 1/3 (UART0).""",
+    "ESP32-S3": """ESP32-S3 Pinout (Beginner-Friendly DevKitC)
+[SAFE] [STRAPPING/CAUTION] [POWER] [BEST USED FOR]
+
+                              3V3 |  1           44  | GND
+                              3V3 |  2           43  | GPIO 43 (Serial TX - GPS, Displays)
+                               EN |  3           42  | GPIO 44 (Serial RX - GPS, Sensors)
+  (Analog In, Touch Buttons) GPIO 4 |  4           41  | GPIO 1  (Analog In, Touch Buttons)
+  (Analog In, Touch Buttons) GPIO 5 |  5           40  | GPIO 2  (Analog In, Touch Buttons)
+  (Analog In, Touch Buttons) GPIO 6 |  6           39  | GPIO 0  (BOOT BUTTON - Avoid using!)
+  (Analog In, Touch Buttons) GPIO 7 |  7           38  | GPIO 42 (General IO)
+        (General IO)        GPIO 15 |  8           37  | GPIO 41 (General IO)
+        (General IO)        GPIO 16 |  9           36  | GPIO 40 (General IO)
+ (Analog In - Wi-Fi off only) GPIO 17 | 10           35  | GPIO 39 (General IO)
+ (Analog In - Wi-Fi off only) GPIO 18 | 11           34  | GPIO 38 (Built-in RGB NeoPixel LED)
+  (Analog In, Touch Buttons) GPIO 8 | 12           33  | GPIO 37 (INTERNAL MEMORY - DO NOT USE)
+  (Analog In, Touch Buttons) GPIO 3 | 13           32  | GPIO 36 (INTERNAL MEMORY - DO NOT USE)
+ (INPUT ONLY - No outputs!) GPIO 46 | 14           31  | GPIO 35 (INTERNAL MEMORY - DO NOT USE)
+  (Analog In, Touch Buttons) GPIO 9 | 15           30  | GPIO 0  (BOOT BUTTON - Avoid using!)
+  (Analog In, Touch Buttons) GPIO 10 | 16           29  | GPIO 45 (STRAPPING - Avoid using!)
+ (Analog In - Wi-Fi off only) GPIO 11 | 17           28  | GPIO 48 (General IO)
+ (Analog In - Wi-Fi off only) GPIO 12 | 18           27  | GPIO 47 (General IO)
+ (Analog In - Wi-Fi off only) GPIO 13 | 19           26  | GPIO 21 (General IO)
+ (Analog In - Wi-Fi off only) GPIO 14 | 20           25  | GPIO 20 (USB Data+ - DO NOT USE)
+                               5V | 21           24  | GPIO 19 (USB Data- - DO NOT USE)
+                              GND | 22           23  | GND
+
+[HARDWARE EXAMPLES]
+Sensors: ANY Analog In pin (GPIO 4-10). Buttons/LEDs: ANY General IO or Analog In.
+I2C OLED/LCD: ANY safe GPIO (default SDA=8, SCL=9).
+SPI SD/RFID: ANY safe GPIO (default MOSI=11, MISO=13, SCK=12).
+Hardware Serial GPS/GSM: GPIO 43 (TX) and 44 (RX).
+DO NOT USE: 0, 3, 19, 20, 35, 36, 37, 45, 46.""",
+    "ESP32-S2": """ESP32-S2 Pinout (Typical DevKit)
+[SAFE] [STRAPPING/INPUT] [POWER] [COMMUNICATION]
+
+       3V3  | 1       42 |  GND
+       3V3  | 2       41 |  TX (43)
+       EN   | 3       40 |  RX (44)
+GPIO 1      | 4       39 |  GPIO 42
+GPIO 2      | 5       38 |  GPIO 41
+GPIO 3      | 6       37 |  GPIO 40
+GPIO 4      | 7       36 |  GPIO 39
+GPIO 5      | 8       35 |  GPIO 38
+GPIO 6      | 9       34 |  GPIO 37
+GPIO 7      | 10      33 |  GPIO 36
+GPIO 8      | 11      32 |  GPIO 35
+GPIO 9      | 12      31 |  GPIO 34
+GPIO 10     | 13      30 |  GPIO 33
+GPIO 11     | 14      29 |  GPIO 26
+GPIO 12     | 15      28 |  GPIO 21
+GPIO 13     | 16      27 |  USB D+ (20)
+GPIO 14     | 17      26 |  USB D- (19)
+GPIO 15     | 18      25 |  GPIO 18
+GPIO 16     | 19      24 |  GPIO 17
+       3V3  | 20      23 |  5V
+       GND  | 21      22 |  GND""",
+    "ESP32-C3": """ESP32-C3 Pinout (Typical DevKit)
+[SAFE] [STRAPPING/INPUT] [POWER] [COMMUNICATION]
+
+       3V3  | 1       30 |  GND
+       EN   | 2       29 |  GPIO 0
+GPIO 4      | 3       28 |  GPIO 1
+GPIO 5      | 4       27 |  GPIO 2 (BOOT)
+GPIO 6      | 5       26 |  GPIO 3
+GPIO 7      | 6       25 |  GPIO 8 (STRAP)
+GPIO 9 (BOOT)| 7      24 |  GPIO 10
+TX (GPIO 21)| 8      23 |  GPIO 18 (USB D-)
+RX (GPIO 20)| 9      22 |  GPIO 19 (USB D+)
+       GND  | 10      21 |  5V""",
+    "ESP32-C6": """ESP32-C6 Pinout (Typical DevKit)
+[SAFE] [STRAPPING/INPUT] [POWER] [COMMUNICATION]
+
+       3V3  | 1       30 |  GND
+       EN   | 2       29 |  GPIO 0
+GPIO 4      | 3       28 |  GPIO 1
+GPIO 5      | 4       27 |  GPIO 2
+GPIO 6      | 5       26 |  GPIO 3
+GPIO 7      | 6       25 |  GPIO 8
+GPIO 9 (BOOT)| 7      24 |  GPIO 10
+TX (GPIO 16)| 8      23 |  GPIO 11
+RX (GPIO 17)| 9      22 |  GPIO 12 (USB D-)
+       GND  | 10      21 |  GPIO 13 (USB D+)
+       5V   | 11      20 |  GND""",
 }
 
 
@@ -154,8 +246,90 @@ def board_diagnostics(port: str = "", baud: str = "115200") -> dict:
             mac = line.split("MAC:", 1)[1].strip()
         elif line.startswith("Detected flash size:"):
             flash = line.split("Detected flash size:", 1)[1].strip()
-    return {"ok": True, "chip": chip, "features": features, "mac": mac,
-            "flash": flash, "raw": output[-3000:]}
+    result: dict = {"ok": True, "chip": chip, "features": features, "mac": mac,
+                    "flash": flash, "raw": output[-3000:]}
+    # Factory-state check: peek at bootloader region (same logic as CLI board_info)
+    boot_off = "0x0" if any(x in chip for x in ("S3", "C3", "C6")) else "0x1000"
+    with tempfile.TemporaryDirectory() as td:
+        peek = os.path.join(td, "boot_peek.bin")
+        c2, _ = run_capture(f"esptool {port_arg} --baud {baud} read-flash {boot_off} 0x20 {peek}", timeout=30)
+        if c2 == 0 and os.path.exists(peek):
+            try:
+                with open(peek, "rb") as f:
+                    data = f.read()
+                if all(b == 0xFF for b in data):
+                    result["factory_state"] = "blank"
+                    result["factory_note"] = f"BRAND NEW / BLANK — no bootloader at {boot_off}."
+                elif data and data[0] == 0xE9:
+                    result["factory_state"] = "used"
+                    result["factory_note"] = f"USED — bootloader magic found at {boot_off}."
+                else:
+                    result["factory_state"] = "unknown"
+                    result["factory_note"] = f"Memory at {boot_off} is neither blank nor standard bootloader."
+            except Exception:
+                result["factory_state"] = "unknown"
+        # Firmware descriptor: search app region for ESP_APP_DESC magic
+        app_peek = os.path.join(td, "app_peek.bin")
+        c3, _ = run_capture(f"esptool {port_arg} --baud {baud} read-flash 0x10000 0x1000 {app_peek}", timeout=30)
+        if c3 == 0 and os.path.exists(app_peek):
+            try:
+                with open(app_peek, "rb") as f:
+                    app = f.read()
+                idx = app.find(b'\x32\x54\xcd\xab')
+                if idx != -1:
+                    def _s(off: int, ln: int) -> str:
+                        return app[off:off + ln].split(b'\x00')[0].decode('utf-8', errors='ignore')
+                    result["firmware"] = {
+                        "project": _s(idx + 48, 32),
+                        "compiled_time": _s(idx + 80, 16),
+                        "compiled_date": _s(idx + 96, 16),
+                        "idf_version": _s(idx + 112, 32),
+                    }
+            except Exception:
+                pass
+    return result
+
+
+def suggest_fs_mb(total_bytes: int) -> float:
+    """Same formula as CLI partition manager: +20% overhead, round up to 0.5 MB, min 0.5."""
+    calc_mb = (total_bytes / (1024 * 1024)) * 1.2
+    suggested = max(0.5, round(calc_mb * 2) / 2.0)
+    return suggested
+
+
+def parse_spiffs_from_csv(csv_text: str) -> dict | None:
+    """Find spiffs/littlefs/ffat partition offset+size from partitions.csv text."""
+    for line in csv_text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) >= 5 and (parts[0] in ("spiffs", "littlefs", "ffat")
+                                or parts[2] in ("spiffs", "littlefs", "ffat")):
+            try:
+                size_int = int(parts[4].rstrip("Kk"), 0) * 1024 if parts[4].upper().endswith("K") \
+                    else int(parts[4], 0)
+            except ValueError:
+                try:
+                    size_int = int(parts[4], 16)
+                except ValueError:
+                    continue
+            return {"name": parts[0], "offset": parts[3], "size": size_int,
+                    "size_human": f"{size_int / 1024:.0f}K"}
+    return None
+
+
+def build_littlefs_image(data_dir: str, size_bytes: int, out_bin: str) -> tuple[bool, str]:
+    """Pack data_dir into littlefs.bin via mklittlefs. Returns (ok, logs)."""
+    tool = find_mklittlefs()
+    if not tool:
+        return False, "mklittlefs not found (install ESP32 core via Core Manager first)"
+    if not os.path.isdir(data_dir):
+        return False, f"data directory not found: {data_dir}"
+    code, out = run_capture(f'"{tool}" -c "{data_dir}" -s {size_bytes} "{out_bin}"', timeout=120)
+    if code != 0 or not os.path.exists(out_bin):
+        return False, f"mklittlefs failed:\n{out}"
+    return True, f"Packed {data_dir} ({size_bytes} bytes) -> {out_bin}\n{out[-1000:]}"
 
 
 def scan_includes(source: str) -> list[str]:

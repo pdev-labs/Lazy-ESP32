@@ -9,8 +9,14 @@ h2{margin:0 0 10px;font-size:16px}
 button{background:#2a3a5f;color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
 button.primary{background:linear-gradient(90deg,#0ea5e9,#22d3ee);color:#032;font-weight:700}
 button.danger{background:#5b1d1d;border:1px solid var(--bad)}
-input,select{background:#0e1526;color:var(--txt);border:1px solid #33456e;border-radius:8px;padding:7px 9px}
+input,select,textarea{background:#0e1526;color:var(--txt);border:1px solid #33456e;border-radius:8px;padding:7px 9px}
+textarea{font-family:monospace;font-size:12px}
+button:disabled{opacity:.55;cursor:wait}
+label.small{display:block;margin:6px 0}
 .log{background:#0a0f1e;border:1px solid #2a3a5f;border-radius:8px;padding:8px;max-height:220px;overflow:auto;white-space:pre-wrap;font-size:12px}
 .log.tall{height:260px;max-height:300px}.mono{white-space:pre-wrap;font-family:monospace}.small{font-size:13px;color:#cdd8f3}
+#monOut .crash{background:#3a1111;color:#ffb4b4;font-weight:700}
+#pinOut pre{background:#0a0f1e;border:1px solid #2a3a5f;border-radius:8px;padding:8px;overflow:auto;font-size:11px;max-height:320px}
+code{background:#0a0f1e;padding:1px 5px;border-radius:5px}
 footer{text-align:center;color:var(--mut);padding:18px;font-size:12px}
 a{color:var(--acc)}
